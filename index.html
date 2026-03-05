@@ -6,7 +6,7 @@
     <title>Entrance Portal Powered by NEB ASSIST</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔑</text></svg>">
- <style>
+    <style>
         /* --- Global Reset & Base --- */
         :root {
             --bg-primary: #F8F1E9;
@@ -21,693 +21,393 @@
             --success-color: #2ecc71;
             --error-color: #e74c3c;
             --warning-color: #f39c12;
-
-             /* Button text color for high contrast on image */
-             --button-text-color: var(--bg-secondary); /* Dark Teal */
-             /* Fallback if teal is too light on some parts: #2c3e50; */
+            --button-text-color: var(--bg-secondary);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
         body {
             font-family: 'Poppins', sans-serif;
-            /* --- NEW BACKGROUND --- */
             background-image: url('images/file_00000000d36c6230b22103f2834780db_conversation_id=680496f2-8e40-800b-b56b-affe29c47313&message_id=dea58e85-fef6-4ea7-8203-ebc6f7e3431a.png');
-            background-size: cover; /* Cover the entire viewport */
-            background-position: center center; /* Center the image */
-            background-repeat: no-repeat; /* Do not repeat the image */
-            background-attachment: fixed; /* Keep background fixed during scroll */
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             color: var(--text-primary);
             line-height: 1.6;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
             overflow-x: hidden;
-             /* Add a subtle overlay to potentially improve text readability over background */
-             /* background-color: rgba(255, 255, 255, 0.1); /* Optional: light overlay */
-             /* background-blend-mode: overlay; */ /* Optional */
-        }
-        .container {
-             max-width: 1100px;
-             margin: 0 auto;
-             padding: 0 2rem;
-             flex-grow: 1;
-             width: 100%;
-             position: relative;
-             /* Added padding top/bottom to space content from header/footer */
-             padding-top: 2rem;
-             padding-bottom: 3rem;
+            background-color: #222; /* Fallback */
         }
 
-        /* --- Header (SECOND PRIORITY) --- */
+        /* --- Main App Wrapper --- */
+        /* Hides everything until authenticated */
+        #app-content {
+            display: none; /* Controlled by JS */
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- Auth Portal Styles (NEW) --- */
+        #auth-portal {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .portal-box {
+            background: var(--bg-tertiary);
+            padding: 2.5rem 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            text-align: center;
+            border: 3px solid var(--accent-primary);
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        .portal-box h2 { color: var(--bg-secondary); margin-bottom: 0.5rem; font-size: 1.6rem; }
+        .portal-box p { color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.9rem; }
+        
+        .form-group { margin-bottom: 1.2rem; text-align: left; }
+        .form-group label { display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.9rem; color: var(--text-primary); }
+        .form-group input {
+            width: 100%; padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px; font-size: 1rem;
+            background: #fdfdfd; transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+        .form-group input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.2); }
+        
+        #portal-submit-btn {
+            width: 100%; padding: 14px;
+            background: var(--accent-primary); color: white;
+            border: none; border-radius: 8px; font-size: 1.1rem;
+            font-weight: 700; cursor: pointer;
+            transition: all 0.3s ease; display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        #portal-submit-btn:hover:not(:disabled) { background: var(--bg-secondary); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        #portal-submit-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
+        
+        .status-message {
+            margin-top: 1rem; font-size: 0.9rem; font-weight: 600; min-height: 20px; padding: 10px; border-radius: 6px; display: none;
+        }
+        .status-message.loading { display: block; color: var(--bg-secondary); background: #e0f2f1; }
+        .status-message.error { display: block; color: var(--error-color); background: #fdecea; }
+        .status-message.success { display: block; color: var(--success-color); background: #eafaf1; }
+
+        /* --- Header --- */
         header {
-            /* Keep header styles, its background will overlay the body image */
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1.2rem 2rem;
-            background: var(--bg-secondary); /* Solid background stays */
+            padding: 1rem 2rem;
+            background: var(--bg-secondary);
             color: #FFFFFF;
             position: sticky;
             top: 0;
             z-index: 100;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
-       /* --- Header Logo Area Modifications --- */
-header .logo img {
-    max-height: 45px;
-    width: auto;
-    display: block;
-}
+        
+        /* ENLARGED LOGO (taking advantage of freed up space) */
+        header .logo { flex: 1; display: flex; justify-content: center; } /* Centers logo dynamically */
+        header .logo img {
+            max-height: 80px; /* Greatly enlarged from 45px */
+            width: auto;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        header .logo img:hover { transform: scale(1.05); }
 
         header .user-status {
             display: flex;
             align-items: center;
             gap: 1rem;
+            position: absolute; right: 2rem; /* Keep text on right */
         }
-        #user-info {
-            font-size: 0.95rem;
-            color: #F8F1E9;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-        }
-        #user-info .user-icon { font-size: 1.3em; color: var(--accent-secondary); line-height: 1; }
-        #user-info span#user-name { font-weight: 600; color: #FFFFFF; }
+        #user-info { font-size: 0.95rem; color: #F8F1E9; display: flex; align-items: center; gap: 0.6rem; }
+        #user-info span#nav-user-name { font-weight: 600; color: var(--accent-secondary); }
 
+        /* Button styling for logout */
         .auth-button {
-            background: var(--accent-primary);
-            color: #FFFFFF;
-            border: none;
-            padding: 10px 22px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            box-shadow: 0 3px 8px rgba(0,0,0, 0.15);
+            background: #FFFFFF; color: var(--bg-secondary); border: none; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.3s ease; box-shadow: 0 3px 8px rgba(0,0,0, 0.15); display: flex; align-items: center; gap: 0.5rem;
         }
-        .auth-button .icon { font-size: 1.1em; line-height: 1; }
-        .auth-button:hover {
-            background: var(--accent-secondary);
-            color: var(--bg-secondary);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 12px rgba(0,0,0, 0.2);
-        }
-        .auth-button:disabled {
-            background: #999 !important; color: #ccc !important; cursor: not-allowed;
-            transform: none; box-shadow: none;
-        }
-        #logout-btn {
-            background: #FFFFFF; color: var(--bg-secondary);
-            border: 1px solid var(--bg-secondary);
-        }
-        #logout-btn:hover {
-            background: var(--error-color); color: #FFFFFF; border-color: var(--error-color);
-        }
+        .auth-button:hover { background: var(--error-color); color: #FFFFFF; transform: translateY(-2px); }
 
-        /* --- Informational Text (THIRD PRIORITY) --- */
+        /* --- App Layout Elements --- */
+        .container { max-width: 1100px; margin: 0 auto; padding: 2rem 2rem 3rem 2rem; flex-grow: 1; width: 100%; position: relative; }
+        
         .intro-text {
-            text-align: center;
-            padding: 1rem 1rem 1rem 1rem; /* Reduced top padding as container has it now */
-            margin: 0 auto 2.5rem auto; /* Increased bottom margin */
-            max-width: 700px;
-            background-color: rgba(255, 255, 255, 0.6); /* Semi-transparent white background */
-            backdrop-filter: blur(5px); /* Blur effect for readability */
-            -webkit-backdrop-filter: blur(5px); /* Safari */
-            border-radius: 15px; /* Rounded corners */
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            text-align: center; padding: 1.5rem; margin: 0 auto 2.5rem auto; max-width: 700px;
+            background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(5px);
+            border-radius: 15px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); border-left: 5px solid var(--accent-primary);
         }
-        .intro-text h1 {
-            font-size: 1.5rem; /* Slightly adjusted size */
-            font-weight: 600;
-            color: var(--bg-secondary); /* Dark Teal */
-            margin-bottom: 0.5rem;
-            line-height: 1.3;
-        }
+        .intro-text h1 { font-size: 1.8rem; font-weight: 700; color: var(--bg-secondary); line-height: 1.3; }
 
-        /* --- Main Content (Exam Options - FIRST PRIORITY) --- */
-        main { display: block; padding-bottom: 0; } /* Removed padding as container handles it */
-        .options-container {
-            display: grid;
-            /* Adjust minmax for potentially smaller hexagons */
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 2.5rem; /* Keep gap, adjust if needed */
-            animation: fadeInUp 1s ease-in-out 0.2s;
-            animation-fill-mode: backwards;
-        }
-
-        /* --- Creative Option Buttons (HEXAGONAL) --- */
+        .options-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2.5rem; animation: fadeInUp 0.8s ease-in-out forwards; }
+        
         .option-button {
-            /* --- NEW BACKGROUND IMAGE --- */
             background-image: url('images/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI0LTExL3Jhd3BpeGVsX29mZmljZV8zMF9hYnN0cmFjdF9ncmFkaWVudF93aGl0ZV9iYWNrZ3JvdW5kX3ZlY3Rvcl9wcl9kZGY3ZTJiNC0wMjU3LTRjMTUtOWFjNS0xMmQwZTA0N2E4MWYuanBn.jpg');
-            background-size: cover;
-            background-position: center center;
-            color: var(--button-text-color); /* Use variable for high contrast text */
-            text-decoration: none;
-            padding: 2rem 1.5rem; /* Adjusted padding */
-            text-align: center;
-            transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center; /* Center content vertically */
-            border: none;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* Adjusted shadow */
-            font-weight: 700;
-            font-size: 1.2rem; /* Smaller Title */
-            cursor: pointer;
-            position: relative;
-            overflow: hidden; /* Important for clip-path */
-
-            /* --- HEXAGON SHAPE --- */
+            background-size: cover; background-position: center center; color: var(--button-text-color);
+            text-decoration: none; padding: 2rem 1.5rem; text-align: center;
+            transition: transform 0.35s ease, box-shadow 0.35s ease;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); font-weight: 700; font-size: 1.2rem; cursor: pointer;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
             -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-
-            /* --- SIZE ADJUSTMENT (using aspect-ratio) --- */
-            /* Let grid control width, maintain ~hexagon aspect ratio */
-             aspect-ratio: 1 / 1.15; /* Approximate ratio for a regular hexagon */
-             min-height: 180px; /* Minimum height */
-             /* Removed fixed height/width to allow grid flexibility */
+            aspect-ratio: 1 / 1.15; min-height: 180px;
         }
+        .option-button:hover { transform: translateY(-8px) scale(1.03); box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25); }
+        .option-button .icon { font-size: 3rem; margin-bottom: 1rem; color: var(--button-text-color); }
+        .option-button .description { font-size: 0.85rem; color: var(--button-text-color); opacity: 0.9; margin-top: auto; padding-top: 0.5rem; }
 
-        /* Removed shine effect as it might conflict with image/clip-path */
-        /* .option-button::before { ... } */
-
-        .option-button:hover {
-            transform: translateY(-8px) scale(1.03); /* Adjusted hover effect */
-            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25);
-        }
-
-        .option-button .icon {
-            font-size: 3rem; /* Smaller icon */
-            margin-bottom: 1rem; /* Adjusted space */
-            line-height: 1;
-            color: var(--button-text-color); /* Use contrast color */
-            /* Removed drop shadow */
-        }
-
-        .option-button .description {
-            font-size: 0.85rem; /* Smaller description */
-            color: var(--button-text-color); /* Use contrast color */
-            opacity: 0.9;
-            margin-top: auto;
-            padding-top: 0.5rem;
-        }
-
-        /* Removed specific gradient classes as background is now shared */
-        /* .option-see { ... } */
-        /* .option-basic { ... } */
-        /* .option-ktm { ... } */
-
-        /* --- Login Modal (Keep original styles, less prominent) --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
-            z-index: 1060; display: none; justify-content: center; align-items: center;
-            opacity: 0; transition: opacity 0.3s ease-in-out;
-        }
-        .modal-overlay.visible { display: flex; opacity: 1; }
-        #login-modal-content {
-            background: var(--bg-tertiary); padding: 2.5rem; border-radius: 15px;
-            max-width: 450px; width: 90%; box-shadow: 0 10px 30px var(--shadow-color);
-            position: relative; transform: scale(0.95);
-            transition: transform 0.3s ease-in-out;
-             border: 2px solid var(--accent-primary);
-        }
-        .modal-overlay.visible #login-modal-content { transform: scale(1); }
-        #login-modal-content h2 { text-align: center; margin-bottom: 1.5rem; color: var(--bg-secondary); }
-        .form-group { margin-bottom: 1.3rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-secondary); font-size: 0.9rem; }
-        .form-group input[type="email"],
-        .form-group input[type="text"],
-        .form-group input[type="number"] {
-            width: 100%; padding: 12px 15px; border: 1px solid var(--border-color);
-            background: #F8F1E9; color: var(--text-primary); border-radius: 6px;
-            font-size: 1rem; transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .form-group input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.3); }
-        #login-submit-btn { width: 100%; padding: 12px 20px; margin-top: 0.5rem; }
-        #login-error-message { text-align: center; margin-top: 1rem; font-weight: 600; min-height: 1.2em; color: var(--error-color); font-size: 0.9rem; }
-        #login-error-message.verifying { color: var(--warning-color); }
-        #login-error-message:empty { margin-top: 0; }
-        .modal-close-btn {
-            position: absolute; top: 15px; right: 20px; font-size: 1.8rem; color: var(--text-secondary);
-            background: none; border: none; cursor: pointer; line-height: 1; padding: 0; transition: color 0.2s ease;
-        }
-        .modal-close-btn:hover { color: var(--text-primary); }
-             /* --- START: Confirmation Modal Specific Styles --- */
-        #confirmation-modal-overlay {
-            /* Uses .modal-overlay base styles */
-            /* Ensure it's above login modal if needed, though unlikely to show simultaneously */
-            z-index: 1070;
-        }
-
-        #confirmation-modal-content {
-            /* Inherit some styles from login modal, but override as needed */
-            background: var(--bg-tertiary);
-            padding: 2rem 2.5rem; /* Slightly different padding? Adjust if needed */
-            border-radius: 12px; /* Consistent rounded corners */
-            max-width: 480px; /* Slightly wider? Adjust as needed */
-            width: 90%;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
-            position: relative;
-            text-align: center; /* Center align text */
-            border: 2px solid var(--warning-color); /* Use warning color for conflict */
-            transform: scale(0.95);
-            transition: transform 0.3s ease-in-out;
-        }
-
-        /* Inherit transform animation from login modal */
-        .modal-overlay.visible #confirmation-modal-content {
-            transform: scale(1);
-        }
-
-
-        #confirmation-modal-content h3 {
-            color: var(--bg-secondary); /* Dark Teal */
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-
-        #confirmation-modal-content p {
-            color: var(--text-primary);
-            font-size: 1rem;
-            line-height: 1.6;
-            margin-bottom: 2rem;
-        }
-
-        .confirmation-modal-actions {
-            display: flex;
-            justify-content: center; /* Center buttons */
-            gap: 1rem; /* Space between buttons */
-            margin-top: 1.5rem;
-        }
-
-        /* Style the confirmation buttons using .auth-button base */
-        .confirmation-modal-actions .auth-button {
-            padding: 10px 25px; /* Adjust padding */
-            font-size: 0.95rem;
-            min-width: 120px; /* Give buttons a minimum width */
-        }
-
-        .confirmation-modal-actions .cancel-button {
-            background-color: var(--text-secondary); /* Grey background */
-            color: #FFFFFF;
-            border: 1px solid var(--text-secondary);
-        }
-
-        .confirmation-modal-actions .cancel-button:hover {
-            background-color: #888; /* Darker grey on hover */
-            border-color: #888;
-            transform: translateY(-2px); /* Keep hover effect */
-            box-shadow: 0 5px 12px rgba(0,0,0, 0.2);
-        }
-
-        .confirmation-modal-actions .proceed-button {
-            background-color: var(--accent-primary); /* Coral */
-            color: #FFFFFF;
-            border: 1px solid var(--accent-primary);
-        }
-
-        .confirmation-modal-actions .proceed-button:hover {
-            background-color: var(--accent-secondary); /* Gold on hover */
-            color: var(--bg-secondary);
-            border-color: var(--accent-secondary);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 12px rgba(0,0,0, 0.2);
-        }
-
-        /* Add responsiveness if needed */
-        @media (max-width: 480px) {
-            #confirmation-modal-content {
-                padding: 1.5rem;
-            }
-            #confirmation-modal-content h3 {
-                font-size: 1.15rem;
-            }
-            #confirmation-modal-content p {
-                font-size: 0.9rem;
-                margin-bottom: 1.5rem;
-            }
-            .confirmation-modal-actions {
-                flex-direction: column-reverse; /* Stack buttons on small screens */
-                gap: 0.8rem;
-            }
-            .confirmation-modal-actions .auth-button {
-                width: 100%; /* Make buttons full width when stacked */
-                min-width: auto;
-            }
-        }
-        /* --- END: Confirmation Modal Specific Styles --- */
-
-        /* --- Footer (LEAST PRIORITY) --- */
         footer {
-            /* Keep footer styles, its background will overlay the body image */
-            text-align: center; padding: 1.5rem 1rem; margin-top: auto; /* Push to bottom */
-            background: var(--bg-secondary); /* Solid background stays */
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 0.85rem;
-             position: relative; /* Ensure it stays on top of body background */
-             z-index: 10; /* Stacking context */
+            text-align: center; padding: 1.5rem 1rem; margin-top: auto; background: var(--bg-secondary);
+            color: rgba(255, 255, 255, 0.8); font-size: 0.85rem; position: relative; z-index: 10;
         }
-        footer a { color: var(--accent-secondary); text-decoration: none; font-weight: 600; transition: color 0.2s ease; }
-        footer a:hover { text-decoration: underline; color: var(--accent-primary); }
-        footer .tagline { margin-top: 0.5rem; font-style: italic; opacity: 0.8; }
+        footer a { color: var(--accent-secondary); text-decoration: none; font-weight: 600; }
+        footer a:hover { color: var(--accent-primary); }
 
-        /* --- Hamburger Menu (Keep original styles) --- */
-        #hamburger-btn {
-            position: fixed; top: 25px; right: 30px; width: 35px; height: 28px;
-            background: transparent; border: none; cursor: pointer; display: none;
-            flex-direction: column; justify-content: space-around; padding: 0; z-index: 1050; outline: none;
-        }
-        #hamburger-btn .bar { display: block; width: 100%; height: 4px; background-color: #FFFFFF; border-radius: 2px; transition: all 0.3s ease-in-out; }
-        #hamburger-btn.open .bar1 { transform: translateY(12px) rotate(45deg); }
-        #hamburger-btn.open .bar2 { opacity: 0; }
-        #hamburger-btn.open .bar3 { transform: translateY(-12px) rotate(-45deg); }
-        #side-menu {
-            position: fixed; top: 0; right: -280px; width: 250px; height: 100%;
-            background: var(--bg-secondary); box-shadow: -5px 0 15px var(--shadow-color);
-            transition: right 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 1040;
-            padding-top: 80px; display: flex; flex-direction: column;
-        }
-        #side-menu.open { right: 0; }
-        #side-menu .menu-item { display: flex; align-items: center; padding: 18px 25px; color: #FFFFFF; text-decoration: none; font-size: 1.1em; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.1); transition: background 0.2s ease, color 0.2s ease; }
-        #side-menu .menu-item:first-child { border-top: 1px solid rgba(255,255,255,0.1); }
-        #side-menu .menu-item:hover { background: var(--accent-primary); color: #FFFFFF; }
-        #side-menu .menu-icon { margin-right: 15px; font-size: 1.3em; width: 25px; text-align: center; }
-        #menu-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7); z-index: 1030; opacity: 0; visibility: hidden;
-            transition: opacity 0.4s ease, visibility 0s linear 0.4s;
-        }
-        #menu-overlay.open { opacity: 1; visibility: visible; transition: opacity 0.4s ease; }
-
-        /* --- Animations --- */
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* Animations */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- Responsiveness --- */
-        @media (max-width: 992px) {
-            .options-container {
-                 grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Further adjust minmax */
-                 gap: 2rem;
-            }
-             .option-button {
-                 padding: 1.5rem 1rem; /* Adjust padding */
-                 font-size: 1.1rem; /* Adjust font size */
-                 min-height: 160px; /* Adjust min height */
-             }
-             .option-button .icon { font-size: 2.5rem; } /* Adjust icon size */
-             .option-button .description { font-size: 0.8rem; } /* Adjust description size */
-        }
-
+        /* Responsiveness */
         @media (max-width: 768px) {
-            header { flex-direction: column; align-items: center; padding: 1rem; text-align: center; }
-            header .logo { margin-bottom: 0.8rem; }
-            header .user-status { margin-top: 0.5rem; }
-            #hamburger-btn { display: flex; top: 18px; right: 20px; }
-             .intro-text { padding: 1rem; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); } /* Adjust blur */
-            .intro-text h1 { font-size: 1.3rem; }
-            .options-container {
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Allow 2 columns if space */
-                gap: 1.8rem;
-            }
-            .option-button {
-                min-height: 150px; /* Adjust min height */
-                 padding: 1.2rem 1rem;
-            }
+            header .logo img { max-height: 60px; }
+            header .user-status { position: static; margin-top: 10px; }
+            header { flex-direction: column; }
+            .options-container { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.8rem; }
         }
-
         @media (max-width: 480px) {
-             .container { padding: 1rem 1rem 2rem 1rem; } /* Adjust container padding */
-            #hamburger-btn { top: 15px; right: 15px; width: 30px; height: 24px; }
-             #hamburger-btn .bar { height: 3px; }
-            #hamburger-btn.open .bar1 { transform: translateY(10px) rotate(45deg); }
-             #hamburger-btn.open .bar3 { transform: translateY(-11px) rotate(-45deg); }
-            #side-menu { width: 220px; right: -250px; padding-top: 70px; }
-            .intro-text { padding: 1rem 0.8rem; margin-bottom: 2rem; }
-             .intro-text h1 { font-size: 1.2rem; }
-            .auth-button { font-size: 0.8rem; padding: 8px 16px; }
-            #user-info { font-size: 0.85rem; gap: 0.4rem; }
-            #user-info .user-icon { font-size: 1.1em; }
-             .options-container {
-                 grid-template-columns: 1fr; /* Stack buttons */
-                 gap: 1.5rem;
-             }
-             .option-button {
-                font-size: 1.1rem; /* Adjust font size */
-                padding: 1.5rem 1rem; /* Adjust padding */
-                min-height: auto; /* Let content define height */
-                aspect-ratio: initial; /* Remove aspect ratio constraint when stacked */
-             }
-             .option-button .icon { font-size: 2.2rem; margin-bottom: 0.8rem; } /* Adjust icon */
-             .option-button .description { font-size: 0.8rem; } /* Adjust description */
-             footer { font-size: 0.8rem; padding: 1rem; }
-             #login-modal-content { padding: 2rem 1.5rem; }
+            .options-container { grid-template-columns: 1fr; }
+            .option-button { aspect-ratio: initial; border-radius: 15px; clip-path: none; -webkit-clip-path: none; min-height: auto; } /* Disable Hexagon on mobile for better stacking */
         }
-
-         /* --- START: Heart Button Specific Styles --- */
-    .heart-icon-button {
-        background-color: transparent; /* Make background transparent */
-        color: var(--accent-primary); /* Use accent color for heart */
-        border: 1px solid var(--accent-primary); /* Add border */
-        padding: 8px 10px; /* Adjust padding */
-        margin-right: 0.5rem; /* Add some space to the right */
-        box-shadow: none; /* Remove default shadow if not desired */
-    }
-
-    .heart-icon-button .icon {
-        font-size: 1.2em; /* Adjust icon size */
-        line-height: 1;
-    }
-
-    .heart-icon-button:hover {
-        background-color: var(--accent-primary); /* Coral background on hover */
-        color: #FFFFFF; /* White heart on hover */
-        border-color: var(--accent-primary);
-        transform: scale(1.1); /* Enlarge on hover */
-        box-shadow: 0 4px 10px rgba(0,0,0, 0.15); /* Add shadow on hover */
-    }
-
-    /* Active state for the shrink effect on click */
-    .heart-icon-button:active {
-       transform: scale(0.9); /* Shrink on click */
-       transition: transform 0.1s ease; /* Make shrink effect quick */
-    }
-    /* --- END: Heart Button Specific Styles --- */
-            </style>
+    </style>
 </head>
 <body>
 
-    <!-- Hamburger Menu HTML (Keep structure) -->
-    <button id="hamburger-btn" aria-label="Open Menu" aria-expanded="false">
-        <span class="bar bar1"></span>
-        <span class="bar bar2"></span>
-        <span class="bar bar3"></span>
-    </button>
-    <nav id="side-menu" aria-hidden="true">
-        <a href="https://studymaterialsv2.pages.dev" class="menu-item" target="_blank" rel="noopener noreferrer">
-            <span class="menu-icon">🏠</span> Home
-        </a>
-        <a href="getnotes.html" class="menu-item">
-            <span class="menu-icon">ⓘ</span> Get Code Info
-        </a>
-    </nav>
-    <div id="menu-overlay"></div>
-
-    <!-- Header (SECOND PRIORITY) -->
-    <header>
-               <div class="logo">
-            <!-- Using max-height in CSS to control size -->
-            <img src="images/image.jpg" alt="NEB ASSIST Logo">
-               </div>
-
-        
-        <div class="user-status">
-                        <!-- Heart Button - Always Visible -->
-            <button id="heart-btn" class="auth-button heart-icon-button" aria-label="View Local Quizzes">
-                <span class="icon">❤️</span>
-            </button>
-            <div id="user-info" style="display: none;">
-                <span class="user-icon">👤</span> Welcome, <span id="user-name">User</span>!
-            </div>
-            <button id="logout-btn" class="auth-button" style="display: none;">
-                <span class="icon">🚪</span> Logout
-            </button>
-            <button id="login-header-btn" class="auth-button">
-                <span class="icon">🔑</span> Login
-            </button>
-        </div>
-    </header>
-
-    <!-- Container for main content below header -->
-    <div class="container">
-
-        <!-- Informational Text (THIRD PRIORITY) - Replaces Hero -->
-        <div class="intro-text">
-             <h1>High-Quality MCQs for SEE & Entrance Exams</h1>
-             <!-- Removed the extra paragraph and CTA button -->
-        </div>
-
-        <!-- Main Content Area (FIRST PRIORITY) -->
-        <main id="options">
-            <nav class="options-container" aria-label="Exam Configuration Options">
-                <!-- Card 1: SEE -->
-                <a href="see_setup.html" class="option-button option-see">
-                    <span class="icon">📚</span> <!-- Icon can be styled separately if needed -->
-                     SEE NEB Exam
-                    <span class="description">NEB-style MCQs for SEE prep</span>
-                </a>
-                <!-- Card 2: Basic -->
-                <a href="basic_setup.html" class="option-button option-basic">
-                    <span class="icon">🅱️</span>
-                     Basic Entrance Exam
-                    <span class="description">Class 11 entrance basics</span>
-                </a>
-                <!-- Card 3: KTM -->
-                <a href="ktm_setup.html" class="option-button option-ktm">
-                    <span class="icon">🇰</span>
-                     KTM Province Entrance Exam
-                    <span class="description">Kathmandu-focused entrance</span>
-                </a>
-            </nav>
-             <!-- Removed #status-message div, login feedback is in modal -->
-        </main>
-
-    </div> <!-- End .container -->
-
-    <!-- Footer (LEAST PRIORITY) -->
-    <footer>
-        <p>© 2025 NEB ASSIST. All Rights Reserved. | <a href="/privacy.html">Privacy Policy</a></p>
-        <p class="tagline">Empowering Nepal’s students with personalized exam prep!</p>
-    </footer>
-
-    <!-- Login Modal (HTML structure remains the same) -->
-    <div id="login-modal-overlay" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="login-modal-title">
-        <div id="login-modal-content">
-            <button id="modal-close-btn" class="modal-close-btn" aria-label="Close Login Modal">×</button>
-            <form id="login-form" action="javascript:void(0);" aria-describedby="login-error-message">
-                <h2 id="login-modal-title">Member Login</h2>
+    <!-- ========================================== -->
+    <!-- AUTH PORTAL (Visible if not logged in)     -->
+    <!-- ========================================== -->
+    <div id="auth-portal">
+        <div class="portal-box">
+            <span style="font-size: 3rem; display: block; margin-bottom: 10px;">🛡️</span>
+            <h2>Secure Access</h2>
+            <p>Please verify your credentials.</p>
+            
+            <form id="auth-form">
                 <div class="form-group">
-                    <label for="name-input">Your Name:</label>
-                    <input type="text" id="name-input" name="name" required placeholder="e.g., John Doe" autocomplete="name">
+                    <label for="p-name">Full Name</label>
+                    <input type="text" id="p-name" required placeholder="E.g. Ram Bahadur" autocomplete="name">
                 </div>
                 <div class="form-group">
-                    <label for="email-input">Email Address:</label>
-                    <input type="email" id="email-input" name="email" required placeholder="you@example.com" autocomplete="email">
+                    <label for="p-id">User ID (Username)</label>
+                    <input type="text" id="p-id" required placeholder="Enter your ID" autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label for="wallet-input">Wallet Number:</label>
-                    <input type="text" id="wallet-input" name="walletNumber" required placeholder="Enter your registered wallet number" autocomplete="off">
+                    <label for="p-token">Security Token</label>
+                    <input type="password" id="p-token" required placeholder="Enter your token" autocomplete="off">
                 </div>
-                 <button type="submit" id="login-submit-btn" class="auth-button">
-                    <span class="icon">🚀</span> Login
+                <button type="submit" id="portal-submit-btn">
+                    <span class="icon">🔓</span> Unlock Access
                 </button>
-                <div id="login-error-message" aria-live="polite"></div>
+                <div id="portal-status" class="status-message"></div>
             </form>
         </div>
     </div>
 
-        <!-- START: Confirmation Modal HTML -->
-    <!-- Confirmation Modal (for Session Conflict) -->
-    <div id="confirmation-modal-overlay" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="confirmation-modal-title">
-        <div id="confirmation-modal-content" class="confirmation-modal"> <!-- Added class for specific styling -->
-             <h3 id="confirmation-modal-title">Session Conflict Detected</h3>
-             <p id="confirmation-modal-message">
-                 This email is already logged in on another device or browser. Continuing will log out the other session. Do you wish to proceed?
-             </p>
-             <div class="confirmation-modal-actions">
-                 <button id="confirm-cancel-btn" class="auth-button cancel-button">
-                     <span class="icon">❌</span> Cancel
-                 </button>
-                 <button id="confirm-proceed-btn" class="auth-button proceed-button">
-                     <span class="icon">✔️</span> Proceed
-                 </button>
-             </div>
-        </div>
-    </div>
-    <!-- END: Confirmation Modal HTML -->
-    <!-- Embedded JS for Hamburger Menu (Remains the same) -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const hamburgerBtn = document.getElementById('hamburger-btn');
-            const sideMenu = document.getElementById('side-menu');
-            const menuOverlay = document.getElementById('menu-overlay');
+    <!-- ========================================== -->
+    <!-- MAIN APP CONTENT (Hidden until logged in)  -->
+    <!-- ========================================== -->
+    <div id="app-content">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <img src="images/image.jpg" alt="NEB ASSIST Logo">
+            </div>
+            
+            <div class="user-status">
+                <div id="user-info">
+                    <span class="user-icon">👤</span> Welcome, <span id="nav-user-name">User</span>
+                </div>
+                <!-- Small explicit logout button just in case user needs to reset session -->
+                <button id="logout-btn" class="auth-button">
+                    <span class="icon">🚪</span> Logout
+                </button>
+            </div>
+        </header>
 
-            function toggleMenu(isOpen) {
-                sideMenu.classList.toggle('open', isOpen);
-                menuOverlay.classList.toggle('open', isOpen);
-                hamburgerBtn.classList.toggle('open', isOpen);
-                hamburgerBtn.setAttribute('aria-expanded', isOpen);
-                sideMenu.setAttribute('aria-hidden', !isOpen);
+        <!-- Main Content area -->
+        <div class="container">
+            <div class="intro-text">
+                <h1>High-Quality MCQs for SEE & Entrance Exams</h1>
+            </div>
+
+            <main id="options">
+                <nav class="options-container" aria-label="Exam Configuration Options">
+                    <a href="see_setup.html" class="option-button option-see">
+                        <span class="icon">📚</span> SEE NEB Exam
+                        <span class="description">NEB-style MCQs for SEE prep</span>
+                    </a>
+                    <a href="basic_setup.html" class="option-button option-basic">
+                        <span class="icon">🅱️</span> Basic Entrance Exam
+                        <span class="description">Class 11 entrance basics</span>
+                    </a>
+                    <a href="ktm_setup.html" class="option-button option-ktm">
+                        <span class="icon">🇰</span> KTM Province Entrance Exam
+                        <span class="description">Kathmandu-focused entrance</span>
+                    </a>
+                </nav>
+            </main>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>© 2025 NEB ASSIST. All Rights Reserved. | <a href="/privacy.html">Privacy Policy</a></p>
+            <p class="tagline">Empowering Nepal’s students with personalized exam prep!</p>
+        </footer>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT LOGIC                           -->
+    <!-- ========================================== -->
+    <script>
+        // REPLACE THIS URL WITH YOUR GOOGLE APPS SCRIPT WEB APP DEPLOYMENT URL
+        const SCRIPT_URL = 'AKfycbwt4uMRMRI3a3-wT4pCl5ifCPlucPWKmTzfJWN9IcxsfIfzj0xndL475bgcWLjw1AhifA';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const authPortal = document.getElementById('auth-portal');
+            const appContent = document.getElementById('app-content');
+            const authForm = document.getElementById('auth-form');
+            const statusMsg = document.getElementById('portal-status');
+            const submitBtn = document.getElementById('portal-submit-btn');
+            const navUserName = document.getElementById('nav-user-name');
+            const logoutBtn = document.getElementById('logout-btn');
+
+            // 1. Check existing session on load (Durable on Mobile Capacitor)
+            function checkSession() {
+                const isLoggedIn = localStorage.getItem('neb_auth_logged_in') === 'true';
+                if (isLoggedIn) {
+                    // Hide portal, show app
+                    authPortal.style.display = 'none';
+                    appContent.style.display = 'flex';
+                    navUserName.textContent = localStorage.getItem('neb_auth_name') || 'Student';
+                } else {
+                    // Show portal, hide app
+                    authPortal.style.display = 'flex';
+                    appContent.style.display = 'none';
+                }
             }
 
-            hamburgerBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isCurrentlyOpen = sideMenu.classList.contains('open');
-                toggleMenu(!isCurrentlyOpen);
-            });
+            // Run check on initial load
+            checkSession();
 
-            menuOverlay.addEventListener('click', () => {
-                toggleMenu(false);
-            });
+            // 2. Handle Login Verification
+            authForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const name = document.getElementById('p-name').value.trim();
+                const id = document.getElementById('p-id').value.trim();
+                const token = document.getElementById('p-token').value.trim();
 
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && sideMenu.classList.contains('open')) {
-                    toggleMenu(false);
+                // UI Loading State
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="icon">⏳</span> Verifying...';
+                statusMsg.className = 'status-message loading';
+                statusMsg.textContent = 'Connecting to secure server...';
+
+                try {
+                    // POST Request to Google Apps Script
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ id: id, token: token, name: name })
+                        // Note: Depending on GAS CORS, you might need to use mode: 'no-cors' 
+                        // but it blocks reading the JSON response. The provided GAS script
+                        // below handles CORS properly.
+                    });
+
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        // Success UI Update
+                        statusMsg.className = 'status-message success';
+                        statusMsg.textContent = 'Access Granted! Initializing portal...';
+                        
+                        // Save Data locally (Capacitor/Web Durable)
+                        localStorage.setItem('neb_auth_logged_in', 'true');
+                        localStorage.setItem('neb_auth_name', name);
+                        localStorage.setItem('neb_auth_id', id);
+                        
+                        // Short delay for visual confirmation before sliding away
+                        setTimeout(() => {
+                            checkSession();
+                            // Reset form
+                            authForm.reset();
+                            statusMsg.style.display = 'none';
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = '<span class="icon">🔓</span> Unlock Access';
+                        }, 1200);
+                        
+                    } else {
+                        // Error returned by Backend (User not found, already logged in, etc.)
+                        statusMsg.className = 'status-message error';
+                        statusMsg.textContent = data.message || 'Verification failed.';
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<span class="icon">🔓</span> Try Again';
+                    }
+
+                } catch (error) {
+                    console.error("Auth Error:", error);
+                    statusMsg.className = 'status-message error';
+                    statusMsg.textContent = 'Network error. Please check connection and try again.';
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<span class="icon">🔓</span> Retry Verification';
                 }
             });
 
-             // Show hamburger on smaller screens based on initial load
-             function checkScreenSize() {
-                 if (window.innerWidth <= 768) {
-                     hamburgerBtn.style.display = 'flex';
-                 } else {
-                      hamburgerBtn.style.display = 'none';
-                      // Ensure menu is closed if resizing larger
-                      if (sideMenu.classList.contains('open')) {
-                          toggleMenu(false);
-                      }
-                 }
-             }
-
-             checkScreenSize(); // Check on initial load
-             window.addEventListener('resize', checkScreenSize); // Check on resize
+            // 3. Handle Logout (To clear session)
+            logoutBtn.addEventListener('click', () => {
+                if(confirm("Are you sure you want to log out? You will need your Token to enter again.")){
+                    localStorage.removeItem('neb_auth_logged_in');
+                    localStorage.removeItem('neb_auth_name');
+                    localStorage.removeItem('neb_auth_id');
+                    checkSession(); // Will push user back to portal overlay
+                }
+            });
         });
     </script>
-
-    <!-- Application Logic (Keep your existing link) -->
+    
+    <!-- Application Logic (If you have additional app scripts) -->
     <script type="module" src="/app.js"></script>
-
-    <!-- START: Inline JavaScript for Heart Button -->
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // This code runs only after the HTML is fully loaded
-
-        let heartButtonClickCount = 0; // Counter specific to this script
-        const heartBtn = document.getElementById('heart-btn');
-
-        if (heartBtn) { // Check if the button exists
-            heartBtn.addEventListener('click', () => {
-                heartButtonClickCount++; // Increment count on each click
-                console.log("Inline Heart clicks:", heartButtonClickCount); // Optional check
-
-                // CSS :active handles the visual feedback on the first click
-
-                if (heartButtonClickCount >= 2) {
-                    console.log("Inline Navigating to getstarted.html"); // Optional check
-                    window.location.href = 'getstarted.html'; // Navigate on the second click
-                }
-            });
-        } else {
-            console.error("Heart button (#heart-btn) not found!"); // Error if button ID is wrong
-        }
-    });
-</script>
-<!-- END: Inline JavaScript for Heart Button -->
 </body>
-</html>+
+</html>
+
+<!-- 
+================================================================================
+INSTRUCTIONS FOR GOOGLE APPS SCRIPT (BACKEND)
+================================================================================
+
+To make the login portal work, you MUST connect it to your Google Sheet.
+1. Open your Google Sheet.
+2. Ensure Sheet1 has data: Col A = Username(ID), Col B = Token, Col C = is_true
+3. Go to Extensions > Apps Script.
+4. Delete any code there, and paste the code below.
+5. Click "Deploy" -> "New Deployment"
+6. Select Type: "Web App"
+7. Execute as: "Me" (Your email)
+8. Who has access: "Anyone"
+9. Click Deploy, authorize permissions, and copy the Web App URL.
+10. Paste that URL into the SCRIPT_URL variable in the HTML code above.
+
+------------------ PASTE THIS INTO APPS SCRIPT ------------------
+
+
+
+================================================================================
+-->
