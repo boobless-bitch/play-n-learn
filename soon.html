@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coming Soon | The Lab</title>
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --accent: #00f2ff;
+            --secondary: #7000ff;
+            --text: #ffffff;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* SVG Styling & Animations */
+        .stage {
+            width: 400px;
+            height: 400px;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 20px rgba(0, 242, 255, 0.2));
+        }
+
+        /* The "Pulse" animation */
+        @keyframes corePulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+
+        /* Rotation for rings */
+        @keyframes rotateClockwise {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes rotateCounter {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+
+        /* Floating motion */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .svg-float { animation: float 6s ease-in-out infinite; }
+        .svg-core { 
+            transform-origin: center; 
+            animation: corePulse 4s ease-in-out infinite; 
+            fill: url(#coreGradient);
+        }
+        .svg-ring-1 { 
+            transform-origin: center; 
+            animation: rotateClockwise 12s linear infinite; 
+            stroke-dasharray: 100 50;
+        }
+        .svg-ring-2 { 
+            transform-origin: center; 
+            animation: rotateCounter 8s linear infinite; 
+            stroke-dasharray: 20 10;
+        }
+        .svg-ring-3 { 
+            transform-origin: center; 
+            animation: rotateClockwise 20s linear infinite; 
+            stroke-dasharray: 5 5;
+            opacity: 0.4;
+        }
+
+        /* Text Styling */
+        h1 {
+            font-size: 1rem;
+            letter-spacing: 0.5rem;
+            text-transform: uppercase;
+            font-weight: 300;
+            margin: 0;
+            opacity: 0.6;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: var(--accent);
+            font-weight: 700;
+            letter-spacing: 0.1rem;
+        }
+
+        /* Background Glows */
+        .glow {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(112, 0, 255, 0.15) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glow"></div>
+    
+    <div class="container">
+        <div class="svg-float">
+            <svg class="stage" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <radialGradient id="coreGradient">
+                        <stop offset="0%" stop-color="#00f2ff" />
+                        <stop offset="100%" stop-color="#7000ff" />
+                    </radialGradient>
+                    <filter id="blur">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="2" />
+                    </filter>
+                </defs>
+
+                <!-- Outer Rings -->
+                <circle class="svg-ring-3" cx="100" cy="100" r="85" fill="none" stroke="white" stroke-width="0.5" />
+                <circle class="svg-ring-2" cx="100" cy="100" r="70" fill="none" stroke="#7000ff" stroke-width="1" />
+                <circle class="svg-ring-1" cx="100" cy="100" r="55" fill="none" stroke="#00f2ff" stroke-width="2" />
+                
+                <!-- The Core -->
+                <circle class="svg-core" cx="100" cy="100" r="25" />
+                
+                <!-- Orbiting Particles -->
+                <g class="svg-ring-1">
+                    <circle cx="100" cy="45" r="2" fill="#fff" />
+                    <circle cx="100" cy="155" r="2" fill="#fff" />
+                </g>
+            </svg>
+        </div>
+
+        <h1>Under Construction</h1>
+        <div class="status">ENGINEERING IN PROGRESS</div>
+    </div>
+
+</body>
+  </html>
