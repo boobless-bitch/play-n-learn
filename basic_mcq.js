@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let userAnswers = {};
 
     // --- Core Requirements & Constants ---
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT1LZMt3ucIv413tKRE4kcOXbQ3pU_rFnaRMR06UmTc5ZDDmtAED4BaFHTGM9VLR3mayxaE-H3nJIch/pub?output=csv';
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRdtwAaRbFLN10083RmWqwDbnEQGyMEErSFqCPHNm8KuoannGbcxmly3j4dnHe2j7c2SnGlIoksWfxS/pub?output=csv';
     const LOCAL_STORAGE_KEY_CONFIG = 'basicQuizConfig';
     const LOCAL_STORAGE_KEY_RESULTS = 'basicQuizResults';
     const SETUP_PAGE_URL = 'basic_setup.html';
