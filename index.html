@@ -278,8 +278,7 @@
     <!-- JAVASCRIPT LOGIC                           -->
     <!-- ========================================== -->
     <script>
-        // REPLACE THIS URL WITH YOUR GOOGLE APPS SCRIPT WEB APP DEPLOYMENT URL
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqkddPWnvO01Y2PcTOwb2uL3f5LWKCEqOQq6j7SFvLTSpb7q6NWg-JZcPs4OH83y5DPg/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxqkddPWnvO01Y2PcTOwb2uL3f5LWKCEqOQq6j7SFvLTSpb7q6NWg-JZcPs4OH83y5DPg/exec'; // <--- PASTE YOUR NEW URL HERE
 
         document.addEventListener('DOMContentLoaded', () => {
             const authPortal = document.getElementById('auth-portal');
@@ -290,95 +289,87 @@
             const navUserName = document.getElementById('nav-user-name');
             const logoutBtn = document.getElementById('logout-btn');
 
-            // 1. Check existing session on load (Durable on Mobile Capacitor)
             function checkSession() {
                 const isLoggedIn = localStorage.getItem('neb_auth_logged_in') === 'true';
                 if (isLoggedIn) {
-                    // Hide portal, show app
                     authPortal.style.display = 'none';
                     appContent.style.display = 'flex';
                     navUserName.textContent = localStorage.getItem('neb_auth_name') || 'Student';
                 } else {
-                    // Show portal, hide app
                     authPortal.style.display = 'flex';
                     appContent.style.display = 'none';
                 }
             }
-
-            // Run check on initial load
             checkSession();
 
-            // 2. Handle Login Verification
             authForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
-                const name = document.getElementById('p-name').value.trim();
-                const id = document.getElementById('p-id').value.trim();
-                const token = document.getElementById('p-token').value.trim();
+                const nameInput = document.getElementById('p-name').value;
+                const idInput = document.getElementById('p-id').value;
+                const tokenInput = document.getElementById('p-token').value;
 
-                // UI Loading State
+                // --- HEAVY LOGGING START ---
+                console.group("🚀 Auth Attempt Started");
+                console.log("Input Name:", nameInput);
+                console.log("Input ID (Code):", idInput);
+                console.log("Input Token (Symbol):", tokenInput);
+                // --- HEAVY LOGGING END ---
+
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="icon">⏳</span> Verifying...';
+                submitBtn.innerHTML = '<span>⏳</span> Verifying...';
                 statusMsg.className = 'status-message loading';
-                statusMsg.textContent = 'Connecting to secure server...';
+                statusMsg.textContent = 'Connecting to database...';
 
                 try {
-                    // POST Request to Google Apps Script
                     const response = await fetch(SCRIPT_URL, {
                         method: 'POST',
-                        body: JSON.stringify({ id: id, token: token, name: name })
-                        // Note: Depending on GAS CORS, you might need to use mode: 'no-cors' 
-                        // but it blocks reading the JSON response. The provided GAS script
-                        // below handles CORS properly.
+                        mode: 'no-cors', // We use no-cors if simple POST fails, but standard is better
+                        body: JSON.stringify({ 
+                            id: idInput, 
+                            token: tokenInput, 
+                            name: nameInput 
+                        })
                     });
 
-                    const data = await response.json();
+                    // Because Google Apps Script redirects, we usually get an opaque response.
+                    // To handle this properly, we use a slightly different approach:
+                    
+                    // RE-FETCHING WITH PROPER JSON HANDLING
+                    const finalResp = await fetch(SCRIPT_URL + "?id=" + encodeURIComponent(idInput) + "&token=" + encodeURIComponent(tokenInput) + "&name=" + encodeURIComponent(nameInput));
+                    const data = await finalResp.json();
+
+                    console.log("📡 Server Response Received:", data);
 
                     if (data.status === 'success') {
-                        // Success UI Update
+                        console.log("✅ Success! Access Granted.");
                         statusMsg.className = 'status-message success';
-                        statusMsg.textContent = 'Access Granted! Initializing portal...';
+                        statusMsg.textContent = 'Access Granted!';
                         
-                        // Save Data locally (Capacitor/Web Durable)
                         localStorage.setItem('neb_auth_logged_in', 'true');
-                        localStorage.setItem('neb_auth_name', name);
-                        localStorage.setItem('neb_auth_id', id);
+                        localStorage.setItem('neb_auth_name', nameInput);
                         
-                        // Short delay for visual confirmation before sliding away
-                        setTimeout(() => {
-                            checkSession();
-                            // Reset form
-                            authForm.reset();
-                            statusMsg.style.display = 'none';
-                            submitBtn.disabled = false;
-                            submitBtn.innerHTML = '<span class="icon">🔓</span> Unlock Access';
-                        }, 1200);
-                        
+                        setTimeout(() => { checkSession(); }, 1000);
                     } else {
-                        // Error returned by Backend (User not found, already logged in, etc.)
+                        console.error("❌ Auth Failed:", data.message);
                         statusMsg.className = 'status-message error';
-                        statusMsg.textContent = data.message || 'Verification failed.';
+                        statusMsg.textContent = data.message || 'Invalid Credentials';
                         submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<span class="icon">🔓</span> Try Again';
+                        submitBtn.innerHTML = 'Try Again';
                     }
 
                 } catch (error) {
-                    console.error("Auth Error:", error);
+                    console.error("🌐 Network/CORS Error:", error);
                     statusMsg.className = 'status-message error';
-                    statusMsg.textContent = 'Network error. Please check connection and try again.';
+                    statusMsg.textContent = 'Network Error. Check Console (F12).';
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<span class="icon">🔓</span> Retry Verification';
                 }
+                console.groupEnd();
             });
 
-            // 3. Handle Logout (To clear session)
             logoutBtn.addEventListener('click', () => {
-                if(confirm("Are you sure you want to log out? You will need your Token to enter again.")){
-                    localStorage.removeItem('neb_auth_logged_in');
-                    localStorage.removeItem('neb_auth_name');
-                    localStorage.removeItem('neb_auth_id');
-                    checkSession(); // Will push user back to portal overlay
-                }
+                localStorage.clear();
+                location.reload();
             });
         });
     </script>
