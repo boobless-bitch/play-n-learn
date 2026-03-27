@@ -18,7 +18,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21' # <--- Fixed to Java 21
       - name: Install
         run: |
           npm install
