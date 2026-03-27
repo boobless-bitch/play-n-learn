@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRdtwAaRbFLN10083RmWqwDbnEQGyMEErSFqCPHNm8KuoannGbcxmly3j4dnHe2j7c2SnGlIoksWfxS/pub?output=csv';
     const LOCAL_STORAGE_KEY_CONFIG = 'basicQuizConfig';
     const LOCAL_STORAGE_KEY_RESULTS = 'basicQuizResults';
+    const LOCAL_STORAGE_KEY_OFFLINE_CSV = 'basicQuizOfflineCSV'; // Added for offline fallback
     const SETUP_PAGE_URL = 'basic_setup.html';
     const RESULT_PAGE_URL = 'basic_result.html';
 
@@ -118,17 +119,29 @@ document.addEventListener('DOMContentLoaded', () => {
             quizConfig.selectedSubjects.push("Math");
         }
 
-        // 2. Fetch from Google Sheets CSV
+        // 2. Fetch from Google Sheets CSV (With Offline Fallback)
         loadingState.classList.remove('hidden');
         if (quizForm) quizForm.classList.add('hidden');
 
         try {
             const response = await fetch(CSV_URL);
+            if (!response.ok) throw new Error("Network response was not ok");
             const csvText = await response.text();
+            
+            // Save the newly fetched CSV for offline use
+            localStorage.setItem(LOCAL_STORAGE_KEY_OFFLINE_CSV, csvText);
             questionBank = parseCSVToQuestionBank(csvText);
+            
         } catch (error) {
-            handleError(`Failed to fetch questions from database. Please check your internet connection and <a href="${SETUP_PAGE_URL}">try again</a>.`);
-            return;
+            // Offline Fallback Logic
+            const offlineCsvText = localStorage.getItem(LOCAL_STORAGE_KEY_OFFLINE_CSV);
+            if (offlineCsvText) {
+                console.warn("Using offline saved questions due to fetch failure.");
+                questionBank = parseCSVToQuestionBank(offlineCsvText);
+            } else {
+                handleError(`Failed to fetch questions from database and no offline data found. Please check your internet connection and <a href="${SETUP_PAGE_URL}">try again</a>.`);
+                return;
+            }
         }
 
         startTime = Date.now();
@@ -473,4 +486,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Start the Quiz Process ---
     initQuiz();
-}); 
+});
