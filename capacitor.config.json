@@ -1,5 +1,9 @@
 {
-  "appId": "hakuna.tatamnana.com",
-  "appName": "play-n-learn",
-  "webDir": "www"
+  "appId": "hakunamata.matatahakuna.booblessbitch",
+  "appName": "Play n learn",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
 }
