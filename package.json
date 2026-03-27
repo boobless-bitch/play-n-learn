@@ -1,5 +1,5 @@
 {
-  "name": "mcqv4",
+  "name": "play-n-learn",
   "version": "1.0.0",
   "description": "verison 4 for a separate integration fike of studymaterialsv2",
   "main": "app.js",
@@ -16,5 +16,11 @@
   "bugs": {
     "url": "https://github.com/codesaksham11/mcqv4/issues"
   },
-  "homepage": "https://github.com/codesaksham11/mcqv4#readme"
+  "homepage": "https://github.com/codesaksham11/mcqv4#readme",
+  "type": "commonjs",
+  "dependencies": {
+    "@capacitor/android": "^8.3.0",
+    "@capacitor/cli": "^8.3.0",
+    "@capacitor/core": "^8.3.0"
+  }
 }

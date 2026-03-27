@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">play-n-learn</string>
+    <string name="title_activity_main">play-n-learn</string>
+    <string name="package_name">hakuna.tatamnana.com</string>
+    <string name="custom_url_scheme">hakuna.tatamnana.com</string>
+</resources>
